@@ -67,7 +67,8 @@ class SigLIPReranker:
         inputs = self.processor(
             text=all_prompts, return_tensors="pt", padding="max_length", truncation=True,
         ).to(self.device)
-        feats = self.model.get_text_features(**inputs)
+        out = self.model.get_text_features(**inputs)
+        feats = out.pooler_output if hasattr(out, "pooler_output") else out
         feats = feats / feats.norm(dim=-1, keepdim=True).clamp(min=1e-6)
 
         # average templates per class
@@ -123,7 +124,8 @@ class SigLIPReranker:
             crops.append(Image.fromarray(crop.clip(0, 255).astype(np.uint8)))
 
         inputs = self.processor(images=crops, return_tensors="pt").to(self.device)
-        img_feats = self.model.get_image_features(**inputs)
+        img_out = self.model.get_image_features(**inputs)
+        img_feats = img_out.pooler_output if hasattr(img_out, "pooler_output") else img_out
         img_feats = img_feats / img_feats.norm(dim=-1, keepdim=True).clamp(min=1e-6)
 
         logits = img_feats @ self._text_features.T           # (N, C)
