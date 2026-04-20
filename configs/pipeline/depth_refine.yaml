@@ -1,0 +1,15 @@
+name: depth_refine
+box_nms:
+  iou_same: 0.5
+  iou_cross: 0.9
+mask_nms:
+  iou_same: 0.5
+  iou_cross: 0.85
+scoring:
+  w_box: 1.0
+  w_mask: 0.5
+  w_depth: 0.5
+  w_geo: 0.6
+fusion:
+  fill_structural_by_geometry: true
+  residual_slic: true

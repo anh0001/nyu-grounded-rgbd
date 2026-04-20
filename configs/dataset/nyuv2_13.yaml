@@ -1,0 +1,7 @@
+name: nyuv2_13
+root: data/nyuv2
+protocol: nyu13
+num_classes: 13
+ignore_index: 0
+image_size: [480, 640]
+splits_file: splits/gupta_795_654.json

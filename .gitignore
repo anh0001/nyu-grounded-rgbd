@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Env / editors
+.venv/
+.idea/
+.vscode/
+
+# Claude local overrides (keep shared settings.json)
+.claude/settings.local.json
+
+# Data (large, regeneratable)
+data/nyuv2/rgb/
+data/nyuv2/depth/
+data/nyuv2/raw_depth/
+data/nyuv2/labels40/
+data/nyuv2/labels13/
+data/nyuv2/*.mat
+
+# Outputs
+outputs/predictions/
+outputs/logs/
+outputs/reports/
+outputs/cache/
+outputs/**/*.png
+!outputs/.gitkeep
+
+# Model checkpoints
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,9 @@
+name: gdino_base_hqsam
+gdino:
+  model_id: IDEA-Research/grounding-dino-base
+  box_threshold: 0.25
+  text_threshold: 0.25
+sam:
+  backend: hqsam
+  checkpoint: checkpoints/sam_hq_vit_h.pth
+  model_type: vit_h

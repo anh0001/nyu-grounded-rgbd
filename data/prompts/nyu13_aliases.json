@@ -1,0 +1,25 @@
+{
+  "comment": "NYUv2 13-class protocol (Couprie et al.). Mapping from 40-class ids to 13-class ids. 0=unlabeled.",
+  "classes": [
+    {"id": 1,  "name": "bed",       "aliases": ["bed", "mattress"]},
+    {"id": 2,  "name": "books",     "aliases": ["book", "books"]},
+    {"id": 3,  "name": "ceiling",   "aliases": ["ceiling"]},
+    {"id": 4,  "name": "chair",     "aliases": ["chair", "armchair", "office chair"]},
+    {"id": 5,  "name": "floor",     "aliases": ["floor", "rug", "carpet", "floor mat"]},
+    {"id": 6,  "name": "furniture", "aliases": ["cabinet", "dresser", "desk", "table", "counter", "shelves", "bookshelf", "nightstand", "wardrobe"]},
+    {"id": 7,  "name": "objects",   "aliases": ["bottle", "cup", "vase", "box", "bag", "decoration", "small object"]},
+    {"id": 8,  "name": "picture",   "aliases": ["picture", "painting", "poster", "framed picture"]},
+    {"id": 9,  "name": "sofa",      "aliases": ["sofa", "couch"]},
+    {"id": 10, "name": "table",     "aliases": ["table", "coffee table", "dining table"]},
+    {"id": 11, "name": "tv",        "aliases": ["television", "tv", "monitor"]},
+    {"id": 12, "name": "wall",      "aliases": ["wall"]},
+    {"id": 13, "name": "window",    "aliases": ["window", "blinds", "curtain"]}
+  ],
+  "map_from_nyu40": {
+    "1": 12, "2": 5, "3": 6, "4": 1, "5": 4, "6": 9, "7": 10, "8": 6,
+    "9": 13, "10": 6, "11": 8, "12": 6, "13": 13, "14": 6, "15": 6, "16": 13,
+    "17": 6, "18": 7, "19": 7, "20": 5, "21": 7, "22": 3, "23": 2, "24": 6,
+    "25": 11, "26": 7, "27": 7, "28": 13, "29": 7, "30": 7, "31": 7, "32": 6,
+    "33": 7, "34": 7, "35": 7, "36": 7, "37": 7, "38": 7, "39": 6, "40": 7
+  }
+}

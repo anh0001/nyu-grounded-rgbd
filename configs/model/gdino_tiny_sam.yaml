@@ -1,0 +1,9 @@
+name: gdino_tiny_sam
+gdino:
+  model_id: IDEA-Research/grounding-dino-tiny
+  box_threshold: 0.25
+  text_threshold: 0.25
+sam:
+  backend: auto
+  checkpoint: null
+  model_type: vit_h

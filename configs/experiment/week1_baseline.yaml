@@ -1,0 +1,6 @@
+name: week1_baseline
+dataset: nyuv2_40
+model: gdino_tiny_mobilesam
+pipeline: baseline
+split: test
+limit: null

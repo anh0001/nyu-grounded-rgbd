@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Edit(src/**)",
+      "Edit(scripts/**)",
+      "Edit(tests/**)",
+      "Edit(configs/**)",
+      "Edit(requirements/**)",
+      "Edit(CLAUDE.md)",
+      "Edit(README.md)",
+      "Edit(pyproject.toml)",
+      "Edit(.claude/**)",
+      "Edit(.gitignore)",
+      "Write(outputs/**)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(pwd)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(env -u PYTHONPATH*)",
+      "Bash(~/miniconda3/envs/mobile-sam/bin/python *)",
+      "Bash(~/miniconda3/envs/mobile-sam/bin/pytest *)",
+      "Bash(~/miniconda3/envs/mobile-sam/bin/pip show *)",
+      "Bash(~/miniconda3/envs/mobile-sam/bin/pip list*)",
+      "Bash(nvidia-smi*)"
+    ],
+    "ask": [
+      "Bash(~/miniconda3/envs/mobile-sam/bin/pip install *)",
+      "Bash(rm *)",
+      "Bash(git push *)",
+      "Edit(data/**)",
+      "Write(data/**)"
+    ],
+    "deny": [
+      "Bash(sudo *)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)"
+    ]
+  },
+  "env": {
+    "PYTHONNOUSERSITE": "1"
+  }
+}

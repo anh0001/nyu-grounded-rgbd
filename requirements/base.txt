@@ -1,0 +1,15 @@
+torch>=2.1
+torchvision
+transformers>=4.41
+huggingface_hub
+numpy
+scipy
+scikit-image
+opencv-python
+pillow
+h5py
+tqdm
+omegaconf
+pyyaml
+matplotlib
+einops
