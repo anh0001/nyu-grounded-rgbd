@@ -104,13 +104,14 @@ def main() -> None:
         ids = ids[:int(limit)]
     logger.info("starting inference on %d image(s)", len(ids))
 
-    t0 = time.time()
-    for i in tqdm(ids, desc="infer", unit="img", dynamic_ncols=True):
-        sample = ds[i]
-        feat = compute_features(sample.depth, valid=sample.valid_depth)
-        cands = build_proposals(
-            rgb=sample.rgb, depth_feat=feat, gdino=gdino, sam=sam,
-            chunks=chunks, image_id=f"{sample.idx:04d}",
+    flip_tta = bool(OmegaConf.select(pl_cfg, "fusion.flip_tta", default=False))
+    cc_min_area = int(OmegaConf.select(pl_cfg, "fusion.cc_min_area", default=0))
+
+    def _infer_frame(rgb, depth, valid):
+        feat_local = compute_features(depth, valid=valid)
+        cands_local = build_proposals(
+            rgb=rgb, depth_feat=feat_local, gdino=gdino, sam=sam,
+            chunks=chunks, image_id=None,
             box_threshold=float(mdl_cfg.gdino.box_threshold),
             text_threshold=float(mdl_cfg.gdino.text_threshold),
             box_iou_same=float(pl_cfg.box_nms.iou_same),
@@ -118,12 +119,40 @@ def main() -> None:
             mask_iou_same=float(pl_cfg.mask_nms.iou_same),
             mask_iou_cross=float(pl_cfg.mask_nms.iou_cross),
         )
-        sem40 = rasterize(
-            cands, feat, num_classes=40,
+        sem_local = rasterize(
+            cands_local, feat_local, num_classes=40,
             fill_structural_by_geometry=bool(pl_cfg.fusion.fill_structural_by_geometry),
+            cc_min_area=cc_min_area,
         )
         if bool(pl_cfg.fusion.residual_slic):
-            sem40 = fill_residual_slic(sem40, sample.rgb, feat, cands)
+            sem_local = fill_residual_slic(sem_local, rgb, feat_local, cands_local)
+        return sem_local
+
+    t0 = time.time()
+    for i in tqdm(ids, desc="infer", unit="img", dynamic_ncols=True):
+        sample = ds[i]
+        sem40 = _infer_frame(sample.rgb, sample.depth, sample.valid_depth)
+        if flip_tta:
+            import numpy as _np
+
+            rgb_f = _np.ascontiguousarray(sample.rgb[:, ::-1])
+            depth_f = _np.ascontiguousarray(sample.depth[:, ::-1])
+            valid_f = (
+                _np.ascontiguousarray(sample.valid_depth[:, ::-1])
+                if sample.valid_depth is not None else None
+            )
+            sem_f = _infer_frame(rgb_f, depth_f, valid_f)[:, ::-1]
+            # Majority vote between orig and flipped; tie → keep orig.
+            disagree = sem40 != sem_f
+            # For disagreement pixels, prefer the non-background/non-fallback class.
+            from src.pipeline.semantic_fusion import (  # noqa: WPS433
+                FALLBACK_PROP,
+                FALLBACK_STUFF,
+            )
+            fb = {FALLBACK_PROP, FALLBACK_STUFF, 39}
+            prefer_f = disagree & _np.isin(sem40, list(fb)) & ~_np.isin(sem_f, list(fb))
+            sem40 = sem40.copy()
+            sem40[prefer_f] = sem_f[prefer_f]
         if ds_cfg.num_classes == 13:
             from src.pipeline.semantic_fusion import _map_40_to_13
             pred = _map_40_to_13(sem40)

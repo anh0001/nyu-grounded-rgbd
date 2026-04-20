@@ -73,9 +73,48 @@ def rasterize(
     if (sem == 0).any():
         sem = _fallback_fill(sem, feat)
 
+    if cc_min_area > 0:
+        sem = _drop_small_islands(sem, cc_min_area)
+
     if num_classes == 13:
         sem = _map_40_to_13(sem)
     return sem
+
+
+def _drop_small_islands(sem: np.ndarray, min_area: int) -> np.ndarray:
+    """Relabel connected components smaller than ``min_area`` to neighbor majority.
+
+    Why: SAM masks leak tiny fragments of wrong class along object boundaries;
+    dropping components under ``min_area`` and reassigning them to the surrounding
+    class reduces mIoU penalties on small erroneous regions without touching
+    genuine small objects larger than the threshold.
+    """
+    from scipy import ndimage as ndi
+
+    out = sem.copy()
+    H, W = sem.shape
+    for cid in np.unique(sem):
+        if cid == 0:
+            continue
+        cls_mask = sem == cid
+        labeled, n = ndi.label(cls_mask)
+        if n == 0:
+            continue
+        sizes = ndi.sum(cls_mask, labeled, index=np.arange(1, n + 1))
+        small_ids = np.where(sizes < min_area)[0] + 1
+        if small_ids.size == 0:
+            continue
+        small_mask = np.isin(labeled, small_ids)
+        out[small_mask] = 0
+    # Reassign zeroed pixels to dominant neighbor class via dilation vote.
+    zeroed = out == 0
+    if zeroed.any():
+        # Nearest-neighbor fill among non-zero labels.
+        from scipy.ndimage import distance_transform_edt
+
+        _, (iy, ix) = distance_transform_edt(zeroed, return_indices=True)
+        out[zeroed] = out[iy[zeroed], ix[zeroed]]
+    return out
 
 
 def _geometry_structural_masks(feat: DepthFeatures) -> list[tuple[int, np.ndarray, float]]:
