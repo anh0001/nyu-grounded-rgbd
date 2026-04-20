@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sys
 import time
 from pathlib import Path
 
-import numpy as np
 from omegaconf import OmegaConf
 from PIL import Image
 from tqdm import tqdm
@@ -26,6 +26,15 @@ from src.pipeline.semantic_fusion import rasterize  # noqa: E402
 from src.prompts.alias_bank import build_chunks  # noqa: E402
 
 
+def setup_logging() -> logging.Logger:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)s | %(message)s",
+        datefmt="%H:%M:%S",
+    )
+    return logging.getLogger("run_infer")
+
+
 def load_cfg(path: Path):
     cfg = OmegaConf.load(path)
     # merge referenced sub-configs
@@ -36,6 +45,7 @@ def load_cfg(path: Path):
 
 
 def main() -> None:
+    logger = setup_logging()
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", type=str, required=True,
                     help="experiment config name (no .yaml) or path")
@@ -52,9 +62,13 @@ def main() -> None:
     exp_name = cfg.name
     out_dir = args.out or (REPO / "outputs" / "predictions" / exp_name)
     out_dir.mkdir(parents=True, exist_ok=True)
+    report_dir = REPO / "outputs" / "reports"
+    report_dir.mkdir(parents=True, exist_ok=True)
 
     ds = NYUv2Dataset(root=REPO / ds_cfg.root, split=cfg.split, protocol=ds_cfg.protocol,
                       splits_file=ds_cfg.splits_file)
+    logger.info("loaded config=%s experiment=%s split=%s device=%s", cfg_path, exp_name, cfg.split, args.device)
+    logger.info("dataset=%s protocol=%s images=%d output_dir=%s", ds_cfg.name, ds_cfg.protocol, len(ds), out_dir)
 
     gdino = GroundingDINO(
         model_id=mdl_cfg.gdino.model_id,
@@ -67,6 +81,13 @@ def main() -> None:
         checkpoint=mdl_cfg.sam.checkpoint,
         model_type=mdl_cfg.sam.model_type,
         device=args.device,
+    )
+    logger.info(
+        "models ready gdino=%s sam=%s/%s pipeline=%s",
+        mdl_cfg.gdino.model_id,
+        mdl_cfg.sam.backend,
+        mdl_cfg.sam.model_type,
+        cfg.pipeline,
     )
 
     chunks = build_chunks(protocol="nyu40" if ds_cfg.num_classes == 40 else "nyu13")
@@ -81,9 +102,10 @@ def main() -> None:
     ids = list(range(len(ds)))
     if limit:
         ids = ids[:int(limit)]
+    logger.info("starting inference on %d image(s)", len(ids))
 
     t0 = time.time()
-    for i in tqdm(ids):
+    for i in tqdm(ids, desc="infer", unit="img", dynamic_ncols=True):
         sample = ds[i]
         feat = compute_features(sample.depth, valid=sample.valid_depth)
         cands = build_proposals(
@@ -125,10 +147,14 @@ def main() -> None:
         },
         "wall_time_s": time.time() - t0,
     }
-    report_dir = REPO / "outputs" / "reports"
-    report_dir.mkdir(parents=True, exist_ok=True)
     with open(report_dir / f"{exp_name}.json", "w") as f:
         json.dump(report, f, indent=2)
+    logger.info(
+        "finished inference images=%d wall_time_s=%.2f report=%s",
+        len(ids),
+        report["wall_time_s"],
+        report_dir / f"{exp_name}.json",
+    )
     print(metrics.table())
     print(f"\nreport -> {report_dir / f'{exp_name}.json'}")
 
