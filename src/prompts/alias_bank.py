@@ -23,8 +23,11 @@ class PromptChunk:
         return [c.class_id for c in self.classes]
 
 
-def build_chunks(protocol: str = "nyu40") -> list[PromptChunk]:
-    bank = load_nyu40_bank() if protocol == "nyu40" else load_nyu13_bank()
+def build_chunks(protocol: str = "nyu40", bank_file: str | None = None) -> list[PromptChunk]:
+    if protocol == "nyu40":
+        bank = load_nyu40_bank(bank_file) if bank_file else load_nyu40_bank()
+    else:
+        bank = load_nyu13_bank()
     by_id: dict[int, PromptClass] = {
         c["id"]: PromptClass(c["id"], c["name"], c["aliases"]) for c in bank["classes"]
     }

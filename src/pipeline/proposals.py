@@ -29,10 +29,16 @@ def build_proposals(
     box_iou_cross: float = 0.9,
     mask_iou_same: float = 0.5,
     mask_iou_cross: float = 0.85,
+    per_chunk_thresholds: dict[str, tuple[float, float]] | None = None,
+    clip_reranker=None,
+    w_clip: float = 0.0,
+    clip_reassign_margin: float = 0.0,
+    clip_reassign_min_top: float = 0.0,
 ) -> list[Candidate]:
     # 1. detect
     bundle = gdino.detect(rgb, chunks, box_threshold=box_threshold,
-                          text_threshold=text_threshold)
+                          text_threshold=text_threshold,
+                          per_chunk_thresholds=per_chunk_thresholds)
     if not bundle.detections:
         return []
 
@@ -49,8 +55,31 @@ def build_proposals(
     for c in cands:
         c.depth_stats = mask_depth_stats(depth_feat, c.mask)
 
-    # 4. dedup boxes first (cheap), then score, then mask NMS
+    # 4. dedup boxes first (cheap)
     cands = box_nms(cands, iou_same=box_iou_same, iou_cross=box_iou_cross)
-    score_candidates(cands)
+
+    # 4b. SigLIP reranking — score each candidate mask against class text bank.
+    if clip_reranker is not None and cands:
+        rerank = clip_reranker.score_masks(
+            rgb=rgb,
+            masks=[c.mask for c in cands],
+            candidate_class_ids=[c.class_id for c in cands],
+        )
+        for i, c in enumerate(cands):
+            c.clip_own_score = float(rerank.own_score[i])
+            c.clip_top_score = float(rerank.top_score[i])
+            c.clip_top_class = int(rerank.top_class[i])
+            # Reassign class if SigLIP strongly disagrees with GDINO phrase.
+            if (
+                clip_reassign_margin > 0.0
+                and c.clip_top_class != c.class_id
+                and c.clip_top_score >= clip_reassign_min_top
+                and (c.clip_top_score - c.clip_own_score) >= clip_reassign_margin
+            ):
+                c.class_id = c.clip_top_class
+                c.clip_own_score = c.clip_top_score
+
+    # 5. composite scoring, then mask NMS
+    score_candidates(cands, w_clip=w_clip)
     cands = mask_nms(cands, iou_same=mask_iou_same, iou_cross=mask_iou_cross)
     return cands

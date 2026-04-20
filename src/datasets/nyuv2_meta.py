@@ -29,8 +29,9 @@ NYU13_NAMES: list[str] = [
 assert len(NYU13_NAMES) == 14
 
 
-def load_nyu40_bank() -> dict[str, Any]:
-    with open(PROMPTS_DIR / "nyu40_aliases.json") as f:
+def load_nyu40_bank(filename: str = "nyu40_aliases.json") -> dict[str, Any]:
+    path = PROMPTS_DIR / filename
+    with open(path) as f:
         return json.load(f)
 
 

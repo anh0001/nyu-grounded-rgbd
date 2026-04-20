@@ -55,6 +55,7 @@ class GroundingDINO:
         chunks: list[PromptChunk],
         box_threshold: float | None = None,
         text_threshold: float | None = None,
+        per_chunk_thresholds: dict[str, tuple[float, float]] | None = None,
     ) -> DetectionBundle:
         if image_rgb.dtype != np.uint8:
             image_rgb = image_rgb.astype(np.uint8)
@@ -62,10 +63,15 @@ class GroundingDINO:
         H, W = image_rgb.shape[:2]
         bundle = DetectionBundle(image_size=(H, W))
 
-        bt = box_threshold if box_threshold is not None else self.box_threshold
-        tt = text_threshold if text_threshold is not None else self.text_threshold
+        default_bt = box_threshold if box_threshold is not None else self.box_threshold
+        default_tt = text_threshold if text_threshold is not None else self.text_threshold
 
         for chunk in chunks:
+            if per_chunk_thresholds and chunk.name in per_chunk_thresholds:
+                bt, tt = per_chunk_thresholds[chunk.name]
+            else:
+                bt, tt = default_bt, default_tt
+
             prompt = build_prompt(chunk)
             inputs = self.processor(
                 images=pil, text=prompt.text, return_tensors="pt",

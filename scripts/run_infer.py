@@ -90,7 +90,41 @@ def main() -> None:
         cfg.pipeline,
     )
 
-    chunks = build_chunks(protocol="nyu40" if ds_cfg.num_classes == 40 else "nyu13")
+    bank_file = OmegaConf.select(pl_cfg, "prompts.bank_file", default=None)
+    chunks = build_chunks(
+        protocol="nyu40" if ds_cfg.num_classes == 40 else "nyu13",
+        bank_file=bank_file,
+    )
+
+    clip_reranker = None
+    clip_cfg = OmegaConf.select(pl_cfg, "clip_rerank", default=None)
+    if clip_cfg is not None and bool(OmegaConf.select(clip_cfg, "enabled", default=False)):
+        from src.datasets.nyuv2_meta import NYU40_NAMES
+        from src.models.clip_reranker import SigLIPReranker
+
+        class_ids = list(range(1, 41))
+        class_names = [NYU40_NAMES[i] for i in class_ids]
+        clip_reranker = SigLIPReranker(
+            model_id=str(OmegaConf.select(clip_cfg, "model_id",
+                                          default="google/siglip-base-patch16-224")),
+            device=args.device,
+            class_names=class_names,
+            class_ids=class_ids,
+        )
+        logger.info("clip reranker ready model=%s", clip_cfg.get("model_id", "siglip-base"))
+    w_clip = float(OmegaConf.select(pl_cfg, "clip_rerank.w_clip", default=0.0))
+    clip_reassign_margin = float(
+        OmegaConf.select(pl_cfg, "clip_rerank.reassign_margin", default=0.0)
+    )
+    clip_reassign_min_top = float(
+        OmegaConf.select(pl_cfg, "clip_rerank.reassign_min_top", default=0.0)
+    )
+    per_chunk_thresholds_cfg = OmegaConf.select(pl_cfg, "prompts.per_chunk_thresholds", default=None)
+    per_chunk_thresholds: dict[str, tuple[float, float]] | None = None
+    if per_chunk_thresholds_cfg is not None:
+        per_chunk_thresholds = {
+            str(k): (float(v[0]), float(v[1])) for k, v in dict(per_chunk_thresholds_cfg).items()
+        }
 
     acc = ConfusionAccumulator(
         num_classes=ds_cfg.num_classes,
@@ -118,6 +152,11 @@ def main() -> None:
             box_iou_cross=float(pl_cfg.box_nms.iou_cross),
             mask_iou_same=float(pl_cfg.mask_nms.iou_same),
             mask_iou_cross=float(pl_cfg.mask_nms.iou_cross),
+            per_chunk_thresholds=per_chunk_thresholds,
+            clip_reranker=clip_reranker,
+            w_clip=w_clip,
+            clip_reassign_margin=clip_reassign_margin,
+            clip_reassign_min_top=clip_reassign_min_top,
         )
         sem_local = rasterize(
             cands_local, feat_local, num_classes=40,

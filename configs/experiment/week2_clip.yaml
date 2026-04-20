@@ -1,0 +1,6 @@
+name: week2_clip
+dataset: nyuv2_40
+model: gdino_base_mobilesam
+pipeline: depth_refine_v4
+split: test
+limit: null

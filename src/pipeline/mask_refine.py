@@ -19,7 +19,10 @@ class Candidate:
     chunk: str
     text_label: str
     depth_stats: dict[str, float] = field(default_factory=dict)
-    score: float = 0.0          # composite, set by score_candidates
+    clip_own_score: float = 0.0  # SigLIP match vs this candidate's class
+    clip_top_score: float = 0.0  # SigLIP match vs best class
+    clip_top_class: int = 0      # class_id of SigLIP argmax
+    score: float = 0.0           # composite, set by score_candidates
 
 
 def box_iou(a: np.ndarray, b: np.ndarray) -> float:
@@ -114,7 +117,7 @@ def class_geometry_prior(class_id: int, stats: dict[str, float]) -> float:
 def score_candidates(
     cands: list[Candidate],
     w_box: float = 1.0, w_mask: float = 0.5, w_depth: float = 0.3,
-    w_geo: float = 0.4,
+    w_geo: float = 0.4, w_clip: float = 0.0,
 ) -> None:
     for c in cands:
         depth_consistency = 1.0 - min(1.0, c.depth_stats.get("depth_std", 0.0) / 0.5)
@@ -124,6 +127,7 @@ def score_candidates(
             + w_mask * c.mask_score
             + w_depth * depth_consistency
             + w_geo * geo
+            + w_clip * c.clip_own_score
         )
 
 
