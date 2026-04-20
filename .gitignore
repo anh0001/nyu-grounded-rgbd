@@ -16,7 +16,10 @@ __pycache__/
 # Data (large, regeneratable)
 data/nyuv2/rgb/
 data/nyuv2/depth/
+data/nyuv2/depth_raw/
 data/nyuv2/meta/
+data/nyuv2/splits/
+data/nyuv2/_downloads/
 data/nyuv2/raw_depth/
 data/nyuv2/labels40/
 data/nyuv2/labels13/

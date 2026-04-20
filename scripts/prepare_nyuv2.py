@@ -27,11 +27,33 @@ from tqdm import tqdm
 
 LABELED_URL = "http://horatio.cs.nyu.edu/mit/silberman/nyu_depth_v2/nyu_depth_v2_labeled.mat"
 SPLITS_URL = "http://horatio.cs.nyu.edu/mit/silberman/indoor_seg_sup/splits.mat"
-# Official NYU 894->40 class mapping vector (1-indexed; 0 = map to unlabeled).
-# This vector is published in the NYU toolbox (classMapping40.mat). We embed a
-# known-good copy here to avoid fragile hosting. Length = 894.
-# Source: Gupta et al. 2013; vectors widely redistributed in community repos.
-CLASS_MAPPING_40_URL = "https://raw.githubusercontent.com/ankurhanda/nyuv2-meta-data/master/class13Mapping.mat"
+NYUV2_META_REPO = "https://github.com/ankurhanda/nyuv2-meta-data"
+
+
+def resolve_meta_mat(meta_path: Path, what: str, alt_names: tuple[str, ...] = ()) -> Path:
+    """Resolve required NYUv2 metadata, rejecting zero-byte placeholder files."""
+    candidates = (meta_path, *(meta_path.parent / name for name in alt_names))
+    empty: list[Path] = []
+    for candidate in candidates:
+        if not candidate.exists():
+            continue
+        if candidate.stat().st_size == 0:
+            empty.append(candidate)
+            continue
+        return candidate
+
+    if empty:
+        paths = ", ".join(str(p) for p in empty)
+        raise FileNotFoundError(
+            f"Found empty/truncated {what} at {paths}. "
+            f"Delete and re-download from {NYUV2_META_REPO}."
+        )
+
+    looked_for = ", ".join(str(p) for p in candidates)
+    raise FileNotFoundError(
+        f"Need {what}. Looked for: {looked_for}. "
+        f"Fetch from {NYUV2_META_REPO} and place under {meta_path.parent}."
+    )
 
 
 def download(url: str, dst: Path) -> None:
@@ -53,13 +75,7 @@ def load_class_mapping_40(meta_path: Path) -> np.ndarray:
     """Load 894-vector mapping raw class idx -> NYU-40 id (0=unlabeled)."""
     import scipy.io as sio
 
-    if not meta_path.exists():
-        raise FileNotFoundError(
-            f"Need NYU40 class mapping at {meta_path}. "
-            "Obtain classMapping40.mat from NYU toolbox "
-            "(https://github.com/ankurhanda/nyuv2-meta-data) "
-            "and place as data/nyuv2/meta/classMapping40.mat."
-        )
+    meta_path = resolve_meta_mat(meta_path, "NYU40 class mapping")
     m = sio.loadmat(meta_path)
     # toolbox field name: mapClass (1x894 or 894x1)
     arr = np.array(m.get("mapClass") if "mapClass" in m else m["mapping"]).squeeze()
@@ -68,18 +84,32 @@ def load_class_mapping_40(meta_path: Path) -> np.ndarray:
 
 
 def load_class_mapping_13(meta_path: Path) -> np.ndarray:
-    """Load 894-vector mapping raw class idx -> NYU-13 id (0=unlabeled)."""
+    """Load NYU-13 mapping as either raw-894->13 or NYU40->13."""
     import scipy.io as sio
 
-    if not meta_path.exists():
-        raise FileNotFoundError(
-            f"Need NYU13 class mapping at {meta_path}. "
-            "Use classMapping13.mat from NYU toolbox."
-        )
+    meta_path = resolve_meta_mat(
+        meta_path,
+        "NYU13 class mapping",
+        alt_names=("class13Mapping.mat",),
+    )
     m = sio.loadmat(meta_path)
-    arr = np.array(m.get("classMapping13")[0][0][0] if "classMapping13" in m else m["mapping"]).squeeze()
-    assert arr.shape[0] == 894, f"expected 894, got {arr.shape}"
+    class_mapping = m.get("classMapping13")
+    if class_mapping is not None and class_mapping.dtype.names and "labels13" in class_mapping.dtype.names:
+        arr = np.array(class_mapping["labels13"][0, 0]).squeeze()
+    else:
+        arr = np.array(class_mapping if class_mapping is not None else m["mapping"]).squeeze()
+    assert arr.shape[0] in (40, 894), f"expected 40 or 894, got {arr.shape}"
     return arr.astype(np.int32)
+
+
+def build_lut13(map13: np.ndarray) -> tuple[np.ndarray, str]:
+    """Return LUT plus source space used to compute NYU-13 labels."""
+    map13 = np.asarray(map13).squeeze()
+    if map13.shape[0] == 894:
+        return np.concatenate([[0], map13]).astype(np.int32), "raw"
+    if map13.shape[0] == 40:
+        return np.concatenate([[0], map13]).astype(np.int32), "nyu40"
+    raise AssertionError(f"expected 40 or 894, got {map13.shape}")
 
 
 def extract(root: Path, mat_path: Path, splits_path: Path) -> None:
@@ -100,7 +130,7 @@ def extract(root: Path, mat_path: Path, splits_path: Path) -> None:
     # ensure 0 stays 0 (unlabeled); toolbox vectors are 1-indexed from raw class.
     # Pre-pend 0 for label 0.
     lut40 = np.concatenate([[0], map40]).astype(np.int32)
-    lut13 = np.concatenate([[0], map13]).astype(np.int32)
+    lut13, lut13_space = build_lut13(map13)
 
     print(f"open {mat_path}")
     with h5py.File(mat_path, "r") as h:
@@ -118,7 +148,7 @@ def extract(root: Path, mat_path: Path, splits_path: Path) -> None:
             dr = np.transpose(raw[i, ...], (1, 0))        # (H,W)
             lab = np.transpose(labels[i, ...], (1, 0)).astype(np.int32)  # (H,W)
             lab40 = lut40[lab].astype(np.uint8)
-            lab13 = lut13[lab].astype(np.uint8)
+            lab13 = (lut13[lab] if lut13_space == "raw" else lut13[lab40]).astype(np.uint8)
 
             Image.fromarray(rgb).save(root / "rgb" / f"{idx:04d}.png")
             np.save(root / "depth" / f"{idx:04d}.npy", d.astype(np.float32))

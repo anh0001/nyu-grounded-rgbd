@@ -42,7 +42,7 @@ env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 $ENV/bin/python ...
 python scripts/prepare_nyuv2.py --root data/nyuv2
 ```
 
-Downloads `nyu_depth_v2_labeled.mat` + `splits.mat`; extracts RGB / depth / raw-depth / labels40 / labels13 under `data/nyuv2/`. Needs `classMapping40.mat` + `classMapping13.mat` under `data/nyuv2/meta/` (fetch from NYU toolbox, e.g. [ankurhanda/nyuv2-meta-data](https://github.com/ankurhanda/nyuv2-meta-data)).
+Downloads `nyu_depth_v2_labeled.mat` + `splits.mat`; extracts RGB / depth / raw-depth / labels40 / labels13 under `data/nyuv2/`. Needs `classMapping40.mat` plus the NYU-13 mapping under `data/nyuv2/meta/`; the upstream metadata repo names that file `class13Mapping.mat`, and `prepare_nyuv2.py` accepts either `class13Mapping.mat` or `classMapping13.mat` (source: [ankurhanda/nyuv2-meta-data](https://github.com/ankurhanda/nyuv2-meta-data)).
 
 ## Run inference + eval
 
