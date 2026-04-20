@@ -26,6 +26,7 @@ def rasterize(
     feat: DepthFeatures,
     num_classes: int = 40,
     fill_structural_by_geometry: bool = True,
+    cc_min_area: int = 0,
 ) -> np.ndarray:
     H, W = feat.depth.shape
     sem = np.zeros((H, W), dtype=np.uint8)      # 0 = unassigned
