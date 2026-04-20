@@ -6,9 +6,9 @@ argument-hint: <experiment_name>
 Eval-only pass. Use when prediction PNGs already exist and you changed metrics code or want per-class breakdown.
 
 ```bash
-env -u PYTHONPATH PYTHONNOUSERSITE=1 \
+env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 \
   ~/miniconda3/envs/mobile-sam/bin/python scripts/run_eval.py \
   --pred-dir outputs/predictions/$ARGUMENTS
 ```
 
-Print mIoU, pAcc, mAcc, plus top-5 worst classes by IoU.
+Print the metrics table (`mIoU`, `mean class acc`, `pixel acc`) for the available prediction PNGs.

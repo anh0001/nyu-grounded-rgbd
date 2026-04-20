@@ -21,13 +21,13 @@ env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 \
   ~/miniconda3/envs/mobile-sam/bin/python scripts/run_infer.py --config <name>
 ```
 
-Run in background via `run_in_background: true`. Poll output for tqdm progress; don't sleep-poll.
+Run non-interactively and stream progress; do not rely on blind sleep-polling.
 
 ## Post
 
-- `run_eval.py --pred-dir outputs/predictions/<name>`
-- `make_table.py`
-- Report: wall time, mIoU/pAcc/mAcc, top-3 worst classes, delta vs prior run.
+- `env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/run_eval.py --pred-dir outputs/predictions/<name>`
+- `env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/make_table.py`
+- Report: wall time, mIoU/pAcc/mAcc, and the saved report path. If a prior report exists, compute deltas explicitly from the JSON rather than assuming the table includes them.
 
 ## Do not
 

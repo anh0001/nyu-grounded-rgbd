@@ -9,6 +9,7 @@
       "Edit(configs/**)",
       "Edit(requirements/**)",
       "Edit(CLAUDE.md)",
+      "Edit(AGENTS.md)",
       "Edit(README.md)",
       "Edit(pyproject.toml)",
       "Edit(.claude/**)",
@@ -68,7 +69,7 @@
             "command": "node /home/anhar/codes/nyu-grounded-rgbd/.claude/scripts/hooks/quality-gate.js"
           }
         ],
-        "description": "Auto-lint after editing src/",
+        "description": "Run lightweight checks after edited files when supported",
         "id": "post:quality-gate"
       }
     ],

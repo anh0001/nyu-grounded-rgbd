@@ -11,7 +11,6 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { isHookEnabled } = require('../lib/hook-flags');
 
 const MAX_STDIN = 1024 * 1024;
 
@@ -85,6 +84,21 @@ function getPluginRoot() {
   return path.resolve(__dirname, '..', '..');
 }
 
+function isHookEnabled(hookId) {
+  const hooksEnabled = String(process.env.ECC_HOOKS_ENABLED || '').toLowerCase();
+  if (hooksEnabled === '0' || hooksEnabled === 'false') {
+    return false;
+  }
+
+  const disabled = new Set(
+    String(process.env.ECC_DISABLED_HOOKS || '')
+      .split(',')
+      .map(value => value.trim())
+      .filter(Boolean)
+  );
+  return !disabled.has(hookId);
+}
+
 async function main() {
   const [, , hookId, relScriptPath, profilesCsv] = process.argv;
   const { raw, truncated } = await readStdinRaw();
@@ -94,7 +108,7 @@ async function main() {
     process.exit(0);
   }
 
-  if (!isHookEnabled(hookId, { profiles: profilesCsv })) {
+  if (!isHookEnabled(hookId, profilesCsv)) {
     process.stdout.write(raw);
     process.exit(0);
   }

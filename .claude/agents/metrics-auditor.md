@@ -16,7 +16,7 @@ Guard metrics code. Numbers must be reproducible across runs.
 
 ## Workflow
 
-1. Any edit to metrics: run `~/miniconda3/envs/mobile-sam/bin/pytest tests/test_metrics.py -v` before and after. Show both outputs.
+1. Any edit to metrics: run `env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/pytest tests/test_metrics.py -v` before and after. Show both outputs.
 2. If changing formula semantics (rare): add a new test asserting new behavior. Never delete existing tests.
 3. For eval re-runs post-change: compare against previous `outputs/reports/` to detect deltas. Flag deltas >0.1pp as likely code bug, not genuine.
 

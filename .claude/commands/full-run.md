@@ -17,9 +17,14 @@ Steps:
    ```
 3. Eval:
    ```bash
-   ~/miniconda3/envs/mobile-sam/bin/python scripts/run_eval.py \
+   env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 \
+     ~/miniconda3/envs/mobile-sam/bin/python scripts/run_eval.py \
      --pred-dir outputs/predictions/$ARGUMENTS
    ```
-4. Refresh leaderboard: `~/miniconda3/envs/mobile-sam/bin/python scripts/make_table.py`.
+4. Refresh leaderboard:
+   ```bash
+   env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 \
+     ~/miniconda3/envs/mobile-sam/bin/python scripts/make_table.py
+   ```
 
-Report: mIoU / pAcc / mAcc + delta vs previous runs in the table. Flag any per-class IoU that regressed >2pp.
+Report: mIoU / pAcc / mAcc and the path to `outputs/reports/$ARGUMENTS.json`. If a prior report exists, compare against it explicitly instead of assuming `make_table.py` computes deltas.
