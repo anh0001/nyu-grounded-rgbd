@@ -1,0 +1,9 @@
+name: gdino_base_mobilesam
+gdino:
+  model_id: IDEA-Research/grounding-dino-base
+  box_threshold: 0.25
+  text_threshold: 0.25
+sam:
+  backend: mobilesam
+  checkpoint: /home/anhar/codes/MobileSAM/weights/mobile_sam.pt
+  model_type: vit_t

@@ -49,21 +49,35 @@ class SAMWrapper:
                 continue
         raise ImportError("install one of: segment-anything-hq, mobile-sam, segment-anything")
 
+    @staticmethod
+    def _require_checkpoint(
+        backend: str,
+        ckpt: str | Path | None,
+        model_type: str,
+    ) -> str:
+        if not ckpt:
+            raise ValueError(f"{backend} checkpoint required for model_type={model_type}")
+        path = Path(ckpt).expanduser()
+        if not path.exists():
+            raise FileNotFoundError(
+                f"{backend} checkpoint not found for model_type={model_type}: {path}"
+            )
+        return str(path)
+
     def _load(self, backend: str, ckpt: str | Path | None, model_type: str):
-        ckpt = str(ckpt) if ckpt else None
         if backend == "hqsam":
             from segment_anything_hq import SamPredictor, sam_model_registry
-            assert ckpt, "hqsam checkpoint required"
+            ckpt = self._require_checkpoint(backend, ckpt, model_type)
             sam = sam_model_registry[model_type](checkpoint=ckpt).to(self.device).eval()
             return SamPredictor(sam)
         if backend == "mobilesam":
             from mobile_sam import SamPredictor, sam_model_registry
-            assert ckpt, "mobilesam checkpoint required"
+            ckpt = self._require_checkpoint(backend, ckpt, model_type)
             sam = sam_model_registry["vit_t"](checkpoint=ckpt).to(self.device).eval()
             return SamPredictor(sam)
         if backend == "sam":
             from segment_anything import SamPredictor, sam_model_registry
-            assert ckpt, "sam checkpoint required"
+            ckpt = self._require_checkpoint(backend, ckpt, model_type)
             sam = sam_model_registry[model_type](checkpoint=ckpt).to(self.device).eval()
             return SamPredictor(sam)
         raise ValueError(backend)

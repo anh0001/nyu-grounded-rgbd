@@ -1,6 +1,6 @@
 name: best_accuracy
 dataset: nyuv2_40
-model: gdino_base_hqsam
+model: gdino_base_mobilesam
 pipeline: depth_refine
 split: test
 limit: null
