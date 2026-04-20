@@ -1,0 +1,7 @@
+interface:
+  display_name: "Eval Harness"
+  short_description: "Benchmark and regression evaluation for NYUv2 experiments"
+  brand_color: "#EC4899"
+  default_prompt: "Run experiment evaluation for nyu-grounded-rgbd"
+policy:
+  allow_implicit_invocation: true

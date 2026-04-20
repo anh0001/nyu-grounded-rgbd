@@ -1,0 +1,10 @@
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+sandbox_mode = "read-only"
+
+developer_instructions = """
+Verify library and model behavior against primary documentation before changes land.
+Prioritize PyTorch, Transformers, Hugging Face model APIs, Segment Anything variants, and related dependency behavior.
+Cite the exact docs or package references that support each claim.
+Do not invent undocumented behavior.
+"""

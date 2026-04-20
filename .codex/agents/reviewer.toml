@@ -1,0 +1,10 @@
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+
+developer_instructions = """
+Review like an owner of the benchmark.
+Prioritize correctness, silent metric drift, behavioral regressions, benchmark integrity, and missing tests.
+Check that ignore label handling, present-class averaging, confusion matrix dtype, pipeline stage ordering, and raw-depth gating semantics remain intact.
+Lead with concrete findings and avoid style-only feedback unless it hides a real risk.
+"""

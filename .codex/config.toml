@@ -1,0 +1,36 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "live"
+
+persistent_instructions = "Follow project AGENTS.md and .codex/AGENTS.md. Use repo-local skills when relevant. Prefer primary documentation for library and model behavior."
+
+[mcp_servers.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+startup_timeout_sec = 30
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+startup_timeout_sec = 30
+
+[features]
+multi_agent = true
+
+[agents]
+max_threads = 4
+max_depth = 1
+
+[agents.explorer]
+description = "Read-only execution-path and codebase evidence gathering for the RGB-D pipeline."
+config_file = "agents/explorer.toml"
+
+[agents.reviewer]
+description = "Review correctness, benchmark regressions, metrics integrity, and missing tests."
+config_file = "agents/reviewer.toml"
+
+[agents.docs_researcher]
+description = "Verify PyTorch, Transformers, Hugging Face, SAM, and related API behavior against primary docs."
+config_file = "agents/docs-researcher.toml"
