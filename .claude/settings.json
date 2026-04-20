@@ -44,5 +44,45 @@
   },
   "env": {
     "PYTHONNOUSERSITE": "1"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/anhar/codes/nyu-grounded-rgbd/.claude/scripts/hooks/gateguard-fact-force.js"
+          }
+        ],
+        "description": "Force reading imports/schemas before editing pipeline files",
+        "id": "pre:edit-write:gateguard-fact-force"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/anhar/codes/nyu-grounded-rgbd/.claude/scripts/hooks/quality-gate.js"
+          }
+        ],
+        "description": "Auto-lint after editing src/",
+        "id": "post:quality-gate"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /home/anhar/codes/nyu-grounded-rgbd/.claude/scripts/hooks/evaluate-session.js"
+          }
+        ],
+        "description": "Extract patterns from debugging sessions",
+        "id": "stop:evaluate-session"
+      }
+    ]
   }
 }
