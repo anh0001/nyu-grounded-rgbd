@@ -140,6 +140,7 @@ def main() -> None:
 
     flip_tta = bool(OmegaConf.select(pl_cfg, "fusion.flip_tta", default=False))
     cc_min_area = int(OmegaConf.select(pl_cfg, "fusion.cc_min_area", default=0))
+    use_ransac_planes = bool(OmegaConf.select(pl_cfg, "fusion.ransac_planes", default=False))
 
     def _infer_frame(rgb, depth, valid):
         feat_local = compute_features(depth, valid=valid)
@@ -162,6 +163,7 @@ def main() -> None:
             cands_local, feat_local, num_classes=40,
             fill_structural_by_geometry=bool(pl_cfg.fusion.fill_structural_by_geometry),
             cc_min_area=cc_min_area,
+            use_ransac_planes=use_ransac_planes,
         )
         if bool(pl_cfg.fusion.residual_slic):
             sem_local = fill_residual_slic(sem_local, rgb, feat_local, cands_local)

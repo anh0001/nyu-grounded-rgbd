@@ -76,6 +76,86 @@ def compute_features(depth: np.ndarray, valid: np.ndarray | None = None) -> Dept
     )
 
 
+def fit_dominant_planes(
+    feat: DepthFeatures,
+    dist_thr: float = 0.04,
+    min_inliers: int = 4000,
+    num_iters: int = 200,
+    max_planes: int = 3,
+    rng_seed: int = 0,
+) -> list[dict]:
+    """RANSAC dominant planes on backprojected points (valid-gated).
+
+    Returns list of {mask: (H,W) bool, normal: (3,) unit, d: float, role: str}.
+    Role classification uses gravity dot-product: floor if n·up > +0.7,
+    ceiling if n·up < -0.7 with mean y in upper image half, else wall.
+    """
+    H, W = feat.depth.shape
+    pts = feat.points.reshape(-1, 3)
+    valid = feat.valid.reshape(-1)
+    idx = np.flatnonzero(valid & (pts[:, 2] > 1e-3))
+    if idx.size < min_inliers:
+        return []
+    rng = np.random.default_rng(rng_seed)
+    remaining = idx.copy()
+    planes: list[dict] = []
+    up = np.array([0.0, -1.0, 0.0], dtype=np.float32)
+    ys_img = np.arange(H, dtype=np.float32)[:, None].repeat(W, 1).reshape(-1)
+
+    for _ in range(max_planes):
+        if remaining.size < min_inliers:
+            break
+        best_inl: np.ndarray | None = None
+        best_n = None
+        best_d = 0.0
+        for _it in range(num_iters):
+            pick = rng.choice(remaining.size, 3, replace=False)
+            p = pts[remaining[pick]]
+            v1 = p[1] - p[0]
+            v2 = p[2] - p[0]
+            n = np.cross(v1, v2)
+            nn = np.linalg.norm(n)
+            if nn < 1e-6:
+                continue
+            n = n / nn
+            d = -float(n @ p[0])
+            dists = np.abs(pts[remaining] @ n + d)
+            inl = dists < dist_thr
+            if best_inl is None or inl.sum() > best_inl.sum():
+                best_inl = inl
+                best_n = n
+                best_d = d
+        if best_inl is None or best_inl.sum() < min_inliers:
+            break
+        inlier_idx = remaining[best_inl]
+        P = pts[inlier_idx]
+        centroid = P.mean(0)
+        _, _, Vt = np.linalg.svd(P - centroid, full_matrices=False)
+        n_refined = Vt[-1].astype(np.float32)
+        if n_refined @ best_n < 0:
+            n_refined = -n_refined
+        d_refined = float(-n_refined @ centroid)
+
+        mask_flat = np.zeros(pts.shape[0], dtype=bool)
+        mask_flat[inlier_idx] = True
+        mask = mask_flat.reshape(H, W)
+
+        up_dot = float(n_refined @ up)
+        mean_y = float(ys_img[inlier_idx].mean())
+        if up_dot > 0.7 and mean_y > 0.4 * H:
+            role = "floor"
+        elif up_dot < -0.7 and mean_y < 0.5 * H:
+            role = "ceiling"
+        elif abs(up_dot) < 0.3:
+            role = "wall"
+        else:
+            role = "other"
+        planes.append(dict(mask=mask, normal=n_refined, d=d_refined, role=role))
+        remaining = remaining[~best_inl]
+
+    return planes
+
+
 def mask_depth_stats(feat: DepthFeatures, mask: np.ndarray) -> dict[str, float]:
     """Per-mask depth summary."""
     m = mask.astype(bool)

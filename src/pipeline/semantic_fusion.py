@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from src.pipeline.depth_features import DepthFeatures
+from src.pipeline.depth_features import DepthFeatures, fit_dominant_planes
 from src.pipeline.mask_refine import Candidate
 
 # NYU40 class id groupings
@@ -27,6 +27,7 @@ def rasterize(
     num_classes: int = 40,
     fill_structural_by_geometry: bool = True,
     cc_min_area: int = 0,
+    use_ransac_planes: bool = False,
 ) -> np.ndarray:
     H, W = feat.depth.shape
     sem = np.zeros((H, W), dtype=np.uint8)      # 0 = unassigned
@@ -43,8 +44,12 @@ def rasterize(
     # Phase B: structural fill (wall/floor/ceiling).
     struct_cands = [c for c in cands if c.class_id in STRUCTURAL]
     if fill_structural_by_geometry:
-        # geometry-derived masks as extra candidates
-        geo_masks = _geometry_structural_masks(feat)
+        if use_ransac_planes:
+            geo_masks = _ransac_structural_masks(feat)
+            if not geo_masks:
+                geo_masks = _geometry_structural_masks(feat)
+        else:
+            geo_masks = _geometry_structural_masks(feat)
         for cid, m, s in geo_masks:
             existing = sem != 0
             mm = m & (~existing)
@@ -114,6 +119,22 @@ def _drop_small_islands(sem: np.ndarray, min_area: int) -> np.ndarray:
 
         _, (iy, ix) = distance_transform_edt(zeroed, return_indices=True)
         out[zeroed] = out[iy[zeroed], ix[zeroed]]
+    return out
+
+
+def _ransac_structural_masks(feat: DepthFeatures) -> list[tuple[int, np.ndarray, float]]:
+    """RANSAC-fit dominant planes; map to floor/ceiling/wall via gravity role."""
+    planes = fit_dominant_planes(feat)
+    out: list[tuple[int, np.ndarray, float]] = []
+    for p in planes:
+        role = p["role"]
+        m = p["mask"]
+        if role == "floor" and m.sum() > 2000:
+            out.append((2, m, 0.7))
+        elif role == "ceiling" and m.sum() > 1500:
+            out.append((22, m, 0.65))
+        elif role == "wall" and m.sum() > 3000:
+            out.append((1, m, 0.5))
     return out
 
 
