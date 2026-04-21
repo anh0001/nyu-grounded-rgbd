@@ -102,7 +102,9 @@ def main() -> None:
         from src.datasets.nyuv2_meta import NYU40_NAMES
         from src.models.clip_reranker import SigLIPReranker
 
-        class_ids = list(range(1, 41))
+        exclude_ids = OmegaConf.select(clip_cfg, "exclude_class_ids", default=None)
+        exclude_set = set(int(i) for i in exclude_ids) if exclude_ids else set()
+        class_ids = [i for i in range(1, 41) if i not in exclude_set]
         class_names = [NYU40_NAMES[i] for i in class_ids]
         clip_reranker = SigLIPReranker(
             model_id=str(OmegaConf.select(clip_cfg, "model_id",
