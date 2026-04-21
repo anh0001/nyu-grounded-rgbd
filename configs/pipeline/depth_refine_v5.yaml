@@ -1,4 +1,4 @@
-name: depth_refine_v4
+name: depth_refine_v5
 box_nms:
   iou_same: 0.5
   iou_cross: 0.9
@@ -14,7 +14,7 @@ fusion:
   fill_structural_by_geometry: true
   residual_slic: true
   cc_min_area: 150
-  flip_tta: false
+  flip_tta: true
 prompts:
   bank_file: nyu40_aliases_v2.json
   per_chunk_thresholds:

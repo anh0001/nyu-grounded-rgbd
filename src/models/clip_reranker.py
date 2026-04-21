@@ -128,8 +128,11 @@ class SigLIPReranker:
         img_feats = img_out.pooler_output if hasattr(img_out, "pooler_output") else img_out
         img_feats = img_feats / img_feats.norm(dim=-1, keepdim=True).clamp(min=1e-6)
 
-        logits = img_feats @ self._text_features.T           # (N, C)
-        scores = torch.sigmoid(logits * 10.0).cpu().numpy()  # heuristic temperature
+        # Cosine similarity → softmax over the class set for sharp per-mask
+        # distribution. Temperature 100 approximates the 1/0.01 scale used in
+        # CLIP zero-shot classification.
+        logits = (img_feats @ self._text_features.T) * 100.0  # (N, C)
+        scores = torch.softmax(logits, dim=-1).cpu().numpy()
 
         top_idx = scores.argmax(axis=1)
         top_class = np.array([self.class_ids[i] for i in top_idx], dtype=np.int32)
