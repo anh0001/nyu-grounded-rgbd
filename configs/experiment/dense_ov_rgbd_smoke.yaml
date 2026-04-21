@@ -1,0 +1,6 @@
+name: dense_ov_rgbd_smoke
+dataset: nyuv2_40
+model: dense_ov_vith
+pipeline: dense_ov_rgbd
+split: test
+limit: 10

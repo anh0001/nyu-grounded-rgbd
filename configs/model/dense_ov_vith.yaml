@@ -1,0 +1,15 @@
+name: dense_ov_vith
+dense_clip:
+  model_id: openai/clip-vit-large-patch14
+  input_size: 336
+dense_dino:
+  model_id: facebook/dinov2-large
+  input_size: 336
+  output_dims: 64
+sam:
+  model_id: facebook/sam-vit-huge
+  points_per_batch: 32
+  pred_iou_thresh: 0.88
+  stability_score_thresh: 0.92
+  min_mask_area: 256
+  max_regions: 64

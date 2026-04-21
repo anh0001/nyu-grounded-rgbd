@@ -84,6 +84,9 @@ class SigLIPReranker:
         candidate_class_ids: list[int],
         pad_ratio: float = 0.15,
         background_fill: str = "mean",
+        small_mask_context: float = 0.40,
+        small_mask_area_frac: float = 0.02,
+        bg_alpha: float = 0.5,
     ) -> RerankResult:
         if self._text_features is None:
             raise RuntimeError("text features not initialized")
@@ -98,6 +101,7 @@ class SigLIPReranker:
             )
 
         H, W = rgb.shape[:2]
+        total_area = float(H * W)
         crops: list[Image.Image] = []
         for m in masks:
             ys, xs = np.where(m)
@@ -107,15 +111,23 @@ class SigLIPReranker:
             else:
                 y1, y2 = int(ys.min()), int(ys.max()) + 1
                 x1, x2 = int(xs.min()), int(xs.max()) + 1
-            dy = int((y2 - y1) * pad_ratio)
-            dx = int((x2 - x1) * pad_ratio)
+            mask_area = float(ys.size)
+            pad = pad_ratio
+            if total_area > 0 and mask_area / total_area < small_mask_area_frac:
+                pad = max(pad_ratio, small_mask_context)
+            dy = int((y2 - y1) * pad)
+            dx = int((x2 - x1) * pad)
             y1 = max(0, y1 - dy)
             y2 = min(H, y2 + dy)
             x1 = max(0, x1 - dx)
             x2 = min(W, x2 + dx)
             crop = rgb[y1:y2, x1:x2].astype(np.float32)
             crop_mask = m[y1:y2, x1:x2]
-            if background_fill == "mean" and crop_mask.any():
+            if background_fill == "alpha" and crop_mask.any():
+                mean_rgb = crop[crop_mask].mean(axis=0)
+                bg = ~crop_mask
+                crop[bg] = bg_alpha * crop[bg] + (1.0 - bg_alpha) * mean_rgb
+            elif background_fill == "mean" and crop_mask.any():
                 mean_rgb = crop[crop_mask].mean(axis=0)
                 bg = ~crop_mask
                 crop[bg] = mean_rgb

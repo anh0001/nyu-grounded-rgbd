@@ -1,0 +1,53 @@
+name: depth_refine_v11
+box_nms:
+  iou_same: 0.5
+  iou_cross: 0.9
+mask_nms:
+  iou_same: 0.5
+  iou_cross: 0.85
+scoring:
+  w_box: 0.5
+  w_mask: 1.0
+  w_depth: 0.5
+  w_geo: 0.6
+fusion:
+  fill_structural_by_geometry: true
+  residual_slic: false
+  cc_min_area: 150
+  flip_tta: true
+  ransac_planes: true
+prompts:
+  bank_file: nyu40_aliases_v2.json
+  per_chunk_thresholds:
+    structural:      [0.25, 0.25]
+    openings:        [0.22, 0.22]
+    large_furniture: [0.22, 0.22]
+    small_furniture: [0.20, 0.22]
+    appliances:      [0.22, 0.22]
+    small_props:     [0.18, 0.20]
+    counters:        [0.22, 0.22]
+clip_rerank:
+  enabled: true
+  model_id: google/siglip-base-patch16-224
+  w_clip: 2.0
+  reassign_margin: 0.0
+  reassign_min_top: 0.0
+  background_fill: alpha
+  bg_alpha: 0.4
+  small_mask_context: 0.45
+  small_mask_area_frac: 0.02
+dense_fill:
+  enabled: false
+  model_id: openai/clip-vit-large-patch14
+  input_size: 336
+  min_logit: 0.0
+  prompt_desc_file: nyu40_descriptions.json
+dense_seed:
+  enabled: true
+  model_id: openai/clip-vit-large-patch14
+  input_size: 336
+  prompt_desc_file: nyu40_descriptions.json
+  min_logit: 20.0
+  min_component_area: 600
+  max_seeds_per_class: 1
+  sam_score_floor: 0.7

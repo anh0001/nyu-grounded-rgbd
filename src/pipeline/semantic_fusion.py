@@ -28,6 +28,9 @@ def rasterize(
     fill_structural_by_geometry: bool = True,
     cc_min_area: int = 0,
     use_ransac_planes: bool = False,
+    dense_logits: np.ndarray | None = None,
+    dense_class_ids: list[int] | None = None,
+    dense_min_logit: float = 0.0,
 ) -> np.ndarray:
     H, W = feat.depth.shape
     sem = np.zeros((H, W), dtype=np.uint8)      # 0 = unassigned
@@ -77,6 +80,14 @@ def rasterize(
     # Final fallback for anything still 0: use geometric priors.
     if (sem == 0).any():
         sem = _fallback_fill(sem, feat)
+
+    # Dense-CLIP replacement: pixels assigned to FALLBACK_PROP (i.e. no
+    # candidate, no geometric prior) get a second look from dense CLIP/SigLIP
+    # logits, restricted to tail classes most often missed by GDino+SAM.
+    if dense_logits is not None and dense_class_ids is not None:
+        sem = _dense_residual_fill(
+            sem, feat, dense_logits, dense_class_ids, dense_min_logit
+        )
 
     if cc_min_area > 0:
         sem = _drop_small_islands(sem, cc_min_area)
@@ -159,6 +170,57 @@ def _geometry_structural_masks(feat: DepthFeatures) -> list[tuple[int, np.ndarra
     if wall.sum() > 5000:
         out.append((1, wall, 0.45))
     return out
+
+
+_DENSE_FILL_ALLOW = frozenset({
+    # Tail classes GDino+SAM misses most. Pre-curated from per-class IoU
+    # audit (week2_wshift) where these classes sat at 0-0.2 IoU.
+    21,  # clothes
+    23,  # books
+    26,  # paper
+    27,  # towel
+    29,  # box
+    31,  # person
+    37,  # bag
+    39,  # otherfurniture
+    40,  # otherprop
+})
+
+
+def _dense_residual_fill(
+    sem: np.ndarray,
+    feat: DepthFeatures,
+    dense_logits: np.ndarray,
+    dense_class_ids: list[int],
+    min_logit: float,
+) -> np.ndarray:
+    """Overwrite FALLBACK_PROP pixels with tail-class dense CLIP predictions.
+
+    Why: after geometric fallback, pixels with no candidate + no floor/wall/
+    ceiling prior are dumped into FALLBACK_PROP=40. Dense CLIP can recover
+    tail-class signal there (person, bag, books, clothes...) without
+    overwriting confident instance masks or structural planes.
+    """
+    target = sem == FALLBACK_PROP
+    if not target.any():
+        return sem
+    allowed_cols = [
+        i for i, cid in enumerate(dense_class_ids) if int(cid) in _DENSE_FILL_ALLOW
+    ]
+    if not allowed_cols:
+        return sem
+    sub_logits = dense_logits[allowed_cols]
+    best_sub_idx = np.argmax(sub_logits, axis=0)
+    best_logit = np.take_along_axis(
+        sub_logits, best_sub_idx[None, ...], axis=0
+    )[0]
+    class_lut = np.array(
+        [int(dense_class_ids[i]) for i in allowed_cols], dtype=np.uint8
+    )
+    best_cid = class_lut[best_sub_idx]
+    confident = target & (best_logit >= min_logit)
+    sem[confident] = best_cid[confident]
+    return sem
 
 
 def _fallback_fill(sem: np.ndarray, feat: DepthFeatures) -> np.ndarray:

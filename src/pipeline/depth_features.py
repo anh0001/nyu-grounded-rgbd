@@ -107,7 +107,6 @@ def fit_dominant_planes(
             break
         best_inl: np.ndarray | None = None
         best_n = None
-        best_d = 0.0
         for _it in range(num_iters):
             pick = rng.choice(remaining.size, 3, replace=False)
             p = pts[remaining[pick]]
@@ -124,7 +123,6 @@ def fit_dominant_planes(
             if best_inl is None or inl.sum() > best_inl.sum():
                 best_inl = inl
                 best_n = n
-                best_d = d
         if best_inl is None or best_inl.sum() < min_inliers:
             break
         inlier_idx = remaining[best_inl]

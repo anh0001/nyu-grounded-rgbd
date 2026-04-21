@@ -98,6 +98,24 @@ class SAMWrapper:
         return SAMMaskResult(mask=masks[0].astype(bool), score=float(scores[0]))
 
     @torch.inference_mode()
+    def predict_points(
+        self,
+        points_xy: np.ndarray,
+        labels: np.ndarray | None = None,
+    ) -> SAMMaskResult:
+        """Single multi-point prompt -> one mask (best of multimask)."""
+        pts = np.asarray(points_xy, dtype=np.float32).reshape(-1, 2)
+        if labels is None:
+            labels = np.ones((pts.shape[0],), dtype=np.int32)
+        masks, scores, _ = self.predictor.predict(
+            point_coords=pts,
+            point_labels=np.asarray(labels, dtype=np.int32),
+            multimask_output=True,
+        )
+        best = int(np.argmax(scores))
+        return SAMMaskResult(mask=masks[best].astype(bool), score=float(scores[best]))
+
+    @torch.inference_mode()
     def predict_boxes(self, boxes_xyxy: np.ndarray) -> list[SAMMaskResult]:
         if len(boxes_xyxy) == 0:
             return []

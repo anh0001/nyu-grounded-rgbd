@@ -1,0 +1,22 @@
+name: dense_ov_rgbd
+type: dense_ov_rgbd
+dense_ov:
+  tiles_y: 2
+  tiles_x: 2
+  overlap: 0.25
+  clip_logit_weight: 0.25
+  region_logit_weight: 0.75
+  min_region_area: 256
+  prompt_desc_file: nyu40_descriptions.json
+  tta:
+    enabled: true
+    scales: [0.75, 1.0, 1.25]
+    hflip: true
+depth_fusion:
+  wall_boost: 0.35
+  floor_boost: 0.9
+  ceiling_boost: 0.55
+  contradict_penalty: 0.2
+  floor_thr: 0.8
+  ceiling_thr: -0.8
+  wall_thr: 0.3

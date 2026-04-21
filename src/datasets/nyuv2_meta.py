@@ -35,6 +35,13 @@ def load_nyu40_bank(filename: str = "nyu40_aliases.json") -> dict[str, Any]:
         return json.load(f)
 
 
+def load_nyu40_descriptions(filename: str = "nyu40_descriptions.json") -> dict[int, str]:
+    path = PROMPTS_DIR / filename
+    with open(path) as f:
+        raw = json.load(f)
+    return {int(k): str(v) for k, v in raw.items()}
+
+
 def load_nyu13_bank() -> dict[str, Any]:
     with open(PROMPTS_DIR / "nyu13_aliases.json") as f:
         return json.load(f)

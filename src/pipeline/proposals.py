@@ -34,6 +34,10 @@ def build_proposals(
     w_clip: float = 0.0,
     clip_reassign_margin: float = 0.0,
     clip_reassign_min_top: float = 0.0,
+    clip_background_fill: str = "mean",
+    clip_small_mask_context: float = 0.40,
+    clip_small_mask_area_frac: float = 0.02,
+    clip_bg_alpha: float = 0.5,
 ) -> list[Candidate]:
     # 1. detect
     bundle = gdino.detect(rgb, chunks, box_threshold=box_threshold,
@@ -64,6 +68,10 @@ def build_proposals(
             rgb=rgb,
             masks=[c.mask for c in cands],
             candidate_class_ids=[c.class_id for c in cands],
+            background_fill=clip_background_fill,
+            small_mask_context=clip_small_mask_context,
+            small_mask_area_frac=clip_small_mask_area_frac,
+            bg_alpha=clip_bg_alpha,
         )
         for i, c in enumerate(cands):
             c.clip_own_score = float(rerank.own_score[i])

@@ -1,0 +1,6 @@
+name: week3_densefill
+dataset: nyuv2_40
+model: gdino_base_mobilesam
+pipeline: depth_refine_v11
+split: test
+limit: null
