@@ -3,7 +3,7 @@
   "classes": [
     {"id": 1,  "name": "wall",           "aliases": ["wall", "interior wall"]},
     {"id": 2,  "name": "floor",          "aliases": ["floor", "ground floor", "hardwood floor", "tile floor"]},
-    {"id": 3,  "name": "cabinet",        "aliases": ["cabinet", "kitchen cabinet", "storage cabinet"]},
+    {"id": 3,  "name": "cabinet",        "aliases": ["cabinet", "kitchen cabinet", "storage cabinet", "cupboard", "wardrobe"]},
     {"id": 4,  "name": "bed",            "aliases": ["bed", "mattress"]},
     {"id": 5,  "name": "chair",          "aliases": ["chair", "office chair", "dining chair", "armchair"]},
     {"id": 6,  "name": "sofa",           "aliases": ["sofa", "couch"]},
@@ -17,7 +17,7 @@
     {"id": 14, "name": "desk",           "aliases": ["desk", "writing desk", "computer desk", "office desk", "study desk"]},
     {"id": 15, "name": "shelves",        "aliases": ["shelves", "wall shelf", "shelf", "open shelf", "floating shelf"]},
     {"id": 16, "name": "curtain",        "aliases": ["curtain", "window curtain", "drapes"]},
-    {"id": 17, "name": "dresser",        "aliases": ["dresser", "chest of drawers", "bureau", "drawer chest"]},
+    {"id": 17, "name": "dresser",        "aliases": ["dresser"]},
     {"id": 18, "name": "pillow",         "aliases": ["pillow", "cushion"]},
     {"id": 19, "name": "mirror",         "aliases": ["mirror", "wall mirror"]},
     {"id": 20, "name": "floor mat",      "aliases": ["floor mat", "rug", "carpet", "area rug"]},

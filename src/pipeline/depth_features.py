@@ -144,7 +144,7 @@ def fit_dominant_planes(
         mean_y = float(ys_img[inlier_idx].mean())
         if up_dot > 0.7 and mean_y > 0.4 * H:
             role = "floor"
-        elif up_dot < -0.7 and mean_y < 0.5 * H:
+        elif up_dot < -0.7 and mean_y < 0.35 * H:
             role = "ceiling"
         elif abs(up_dot) < 0.3:
             role = "wall"
