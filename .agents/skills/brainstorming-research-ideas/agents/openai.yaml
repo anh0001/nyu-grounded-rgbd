@@ -1,0 +1,7 @@
+interface:
+  display_name: "brainstorming-research-ideas"
+  short_description: "Structured ideation for NYUv2 RGB-D experiments and research directions"
+  brand_color: "#F59E0B"
+  default_prompt: "Brainstorm experiment ideas for nyu-grounded-rgbd"
+policy:
+  allow_implicit_invocation: true
