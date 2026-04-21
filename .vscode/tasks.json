@@ -1,0 +1,68 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Smoke Test (10 imgs) — week1_baseline",
+      "type": "shell",
+      "command": "env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/run_infer.py --config week1_baseline --limit 10",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Smoke Test (10 imgs) — best_accuracy",
+      "type": "shell",
+      "command": "env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/run_infer.py --config best_accuracy --limit 10",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Full Inference — week1_baseline",
+      "type": "shell",
+      "command": "env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/run_infer.py --config week1_baseline",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Full Inference — best_accuracy",
+      "type": "shell",
+      "command": "env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/run_infer.py --config best_accuracy",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Eval — week1_baseline",
+      "type": "shell",
+      "command": "env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/run_eval.py --pred-dir outputs/predictions/week1_baseline",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Eval — best_accuracy",
+      "type": "shell",
+      "command": "env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/run_eval.py --pred-dir outputs/predictions/best_accuracy",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Make Results Table",
+      "type": "shell",
+      "command": "env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/make_table.py",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Prepare NYUv2 Data",
+      "type": "shell",
+      "command": "env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/python scripts/prepare_nyuv2.py --root data/nyuv2",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Run Tests",
+      "type": "shell",
+      "command": "env -u PYTHONPATH -u AMENT_PREFIX_PATH PYTHONNOUSERSITE=1 ~/miniconda3/envs/mobile-sam/bin/pytest",
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared" }
+    }
+  ]
+}

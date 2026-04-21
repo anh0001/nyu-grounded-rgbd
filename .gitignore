@@ -8,7 +8,6 @@ __pycache__/
 # Env / editors
 .venv/
 .idea/
-.vscode/
 
 # Claude local overrides (keep shared settings.json)
 .claude/settings.local.json
