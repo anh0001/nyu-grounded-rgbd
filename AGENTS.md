@@ -80,6 +80,6 @@ Use these files when work touches the corresponding subsystem:
 
 ## Codex Workflow
 
-- Prefer repo-local skills when relevant: `verification-loop`, `eval-harness`, `brainstorming-research-ideas`
+- Prefer repo-local skills when relevant: `verification-loop`, `eval-harness`, `brainstorming-research-ideas`, `experiment-runner`
 - Use the local Codex roles for exploration, review, and documentation verification
 - When a task depends on PyTorch, Transformers, Hugging Face, SAM, or GroundingDINO behavior, verify against primary docs instead of relying on memory

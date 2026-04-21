@@ -1,0 +1,7 @@
+interface:
+  display_name: "Experiment Runner"
+  short_description: "Long-running NYUv2 inference, eval, and benchmark execution"
+  brand_color: "#2563EB"
+  default_prompt: "Run a long experiment for nyu-grounded-rgbd"
+policy:
+  allow_implicit_invocation: true
