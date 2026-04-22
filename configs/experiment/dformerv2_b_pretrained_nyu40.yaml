@@ -1,0 +1,18 @@
+name: dformerv2_b_pretrained_nyu40
+dataset: nyuv2_40
+split: test
+supervised:
+  backend: dformerv2
+  export_root: data/nyuv2_supervised/dformerv2/NYUDepthv2
+  repo_url: https://github.com/VCIP-RGBD/DFormer
+  repo_dir: outputs/cache/supervised_backends/DFormer
+  checkpoint_url: https://huggingface.co/bbynku/DFormerv2/resolve/main/DFormerv2/NYU/DFormerv2_Base_NYU.pth?download=true
+  checkpoint_path: outputs/cache/supervised_backends/checkpoints/DFormerv2_Base_NYU.pth
+  config_module: local_configs.NYUDepthv2.DFormerv2_B
+  deps:
+    - module: easydict
+      pip: easydict
+    - module: mmengine
+      pip: mmengine
+    - module: mmcv
+      pip: mmcv-lite==2.1.0

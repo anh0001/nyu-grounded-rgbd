@@ -23,6 +23,7 @@ data/nyuv2/raw_depth/
 data/nyuv2/labels40/
 data/nyuv2/labels13/
 data/nyuv2/*.mat
+data/nyuv2_supervised/
 
 # Outputs
 outputs/predictions/

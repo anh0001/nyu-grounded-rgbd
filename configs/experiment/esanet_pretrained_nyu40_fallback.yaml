@@ -1,0 +1,18 @@
+name: esanet_pretrained_nyu40_fallback
+dataset: nyuv2_40
+split: test
+supervised:
+  backend: esanet
+  export_root: data/nyuv2_supervised/esanet
+  repo_url: https://github.com/TUI-NICR/ESANet
+  repo_dir: outputs/cache/supervised_backends/ESANet
+  checkpoint_url: https://drive.google.com/uc?id=1C5-kJv4w3foicEudP3DAjdIXVuzUK7O8
+  checkpoint_path: outputs/cache/supervised_backends/checkpoints/nyuv2_r34_NBt1D.tar.gz
+  checkpoint_member: nyuv2/r34_NBt1D.pth
+  height: 480
+  width: 640
+  deps:
+    - module: gdown
+      pip: gdown
+    - module: cityscapesscripts
+      pip: cityscapesScripts
