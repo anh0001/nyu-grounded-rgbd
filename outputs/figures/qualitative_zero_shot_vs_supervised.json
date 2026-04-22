@@ -1,0 +1,78 @@
+{
+  "dataset": "nyuv2_40",
+  "split": "test",
+  "methods": [
+    {
+      "label": "baseline",
+      "pred_dir": "outputs/predictions/week1_baseline"
+    },
+    {
+      "label": "tuned",
+      "pred_dir": "outputs/predictions/week2_tuned"
+    },
+    {
+      "label": "dformer",
+      "pred_dir": "outputs/predictions/dformerv2_b_pretrained_nyu40"
+    }
+  ],
+  "main": "tuned",
+  "baseline": "baseline",
+  "selected_ids": [
+    1148,
+    386,
+    167,
+    1315,
+    1421,
+    1411
+  ],
+  "per_image_metrics": {
+    "1148": {
+      "baseline": 0.26351245880042856,
+      "tuned": 0.7836956680941818,
+      "dformer": 0.8918466930931324,
+      "_main": 0.7836956680941818,
+      "_delta": 0.5201832092937533,
+      "_nclasses": 8.0
+    },
+    "0386": {
+      "baseline": 0.3490923410436393,
+      "tuned": 0.7108544608092806,
+      "dformer": 0.7423222825806071,
+      "_main": 0.7108544608092806,
+      "_delta": 0.3617621197656413,
+      "_nclasses": 5.0
+    },
+    "0167": {
+      "baseline": 0.30735325721709156,
+      "tuned": 0.639375947872925,
+      "dformer": 0.6889847342927765,
+      "_main": 0.639375947872925,
+      "_delta": 0.3320226906558334,
+      "_nclasses": 6.0
+    },
+    "1315": {
+      "baseline": 0.3433410523248188,
+      "tuned": 0.6130895680599097,
+      "dformer": 0.5436243455429707,
+      "_main": 0.6130895680599097,
+      "_delta": 0.26974851573509084,
+      "_nclasses": 12.0
+    },
+    "1421": {
+      "baseline": 0.4379719317523081,
+      "tuned": 0.6348836193427666,
+      "dformer": 0.8196070841177888,
+      "_main": 0.6348836193427666,
+      "_delta": 0.19691168759045852,
+      "_nclasses": 11.0
+    },
+    "1411": {
+      "baseline": 0.5623635521991948,
+      "tuned": 0.6711310405518931,
+      "dformer": 0.8132679941992171,
+      "_main": 0.6711310405518931,
+      "_delta": 0.10876748835269834,
+      "_nclasses": 8.0
+    }
+  }
+}
