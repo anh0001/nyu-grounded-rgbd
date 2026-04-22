@@ -1,0 +1,40 @@
+{
+  "dataset": "nyuv2_40",
+  "split": "test",
+  "methods": [
+    {
+      "label": "baseline",
+      "pred_dir": "outputs/predictions/week1_baseline"
+    },
+    {
+      "label": "tuned",
+      "pred_dir": "outputs/predictions/week2_tuned"
+    }
+  ],
+  "main": "tuned",
+  "baseline": null,
+  "selected_ids": [
+    188,
+    781,
+    127,
+    335
+  ],
+  "per_image_metrics": {
+    "0188": {
+      "baseline": 0.34990753128998686,
+      "tuned": 0.582819557257479
+    },
+    "0781": {
+      "baseline": 0.20758836786061208,
+      "tuned": 0.3069362310477633
+    },
+    "0127": {
+      "baseline": 0.4253779227498835,
+      "tuned": 0.3521258549193502
+    },
+    "0335": {
+      "baseline": 0.11401205915065832,
+      "tuned": 0.11660690100226462
+    }
+  }
+}
